@@ -1,96 +1,139 @@
-# QUICK START — Deploy in 5 Minutes
+# QUICK START — Deploy with Supabase (5 Minutes)
 
-## Option 1: One-Click Deploy (FASTEST)
-
-Click this button to deploy directly:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fperlantir%2FPercomputer&env=NODE_ENV,NEXT_PUBLIC_APP_URL,JWT_SECRET,ENCRYPTION_KEY&envDescription=Required%20environment%20variables&envLink=https%3A%2F%2Fgithub.com%2Fperlantir%2FPercomputer%23environment-variables&project-name=percomputer&repository-name=Percomputer&demo-title=Multi-Model%20Agent%20Orchestration%20Platform&demo-description=Perplexity%20Computer%20clone%20with%20multi-model%20AI%20agent%20orchestration&demo-url=https%3A%2F%2Fpercomputer.vercel.app)
-
-^ **Click the button above** ^
-
-Then fill in these 4 values when prompted:
-
-| Variable | Value |
-|----------|-------|
-| `NODE_ENV` | `production` |
-| `NEXT_PUBLIC_APP_URL` | `https://percomputer.vercel.app` |
-| `JWT_SECRET` | Any 64+ random characters (generate at randomkeygen.com) |
-| `ENCRYPTION_KEY` | Any 32 random characters |
-
-Click **Deploy**. Done! 
+## Your Supabase is Ready!
+- **Project URL:** https://pcfpoaqdwixxxmmbheid.supabase.co
+- **Database Host:** db.pcfpoaqdwixxxmmbheid.supabase.co
+- **Status:** ✅ Connected
 
 ---
 
-## Option 2: Manual Steps (If One-Click Doesn't Work)
+## Step 1: Deploy to Vercel (2 Minutes)
 
-### Step 1
-Go to https://vercel.com/new
+**Option A: One-Click Deploy (FASTEST)**
 
-### Step 2
-Click **"Continue with GitHub"** and sign in
+Click this button and Vercel will clone your repo and start the build:
 
-### Step 3
-Find `perlantir/Percomputer` in your repos, click **Import**
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fperlantir%2FPercomputer&env=DATABASE_URL,NODE_ENV,NEXT_PUBLIC_APP_URL,JWT_SECRET,ENCRYPTION_KEY,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY&envDescription=Required%20environment%20variables%20for%20Supabase%20deployment&envLink=https%3A%2F%2Fgithub.com%2Fperlantir%2FPercomputer%23environment-variables&project-name=percomputer&repository-name=Percomputer)
 
-### Step 4
-Add 4 Environment Variables (click "+ Add a key" for each):
+**Option B: Manual Import**
+1. Go to https://vercel.com/new
+2. Sign in with GitHub
+3. Find `perlantir/Percomputer` → Click **Import**
+4. Vercel auto-detects Next.js — good!
+
+---
+
+## Step 2: Add Environment Variables (2 Minutes)
+
+When Vercel asks for environment variables, paste these **7 values** exactly:
+
+| # | Key | Value |
+|---|-----|-------|
+| 1 | `DATABASE_URL` | `postgresql://postgres:cavdu4-gyncax-qusxyX@db.pcfpoaqdwixxxmmbheid.supabase.co:5432/postgres` |
+| 2 | `NODE_ENV` | `production` |
+| 3 | `NEXT_PUBLIC_APP_URL` | `https://percomputer.vercel.app` |
+| 4 | `JWT_SECRET` | Generate at https://randomkeygen.com (copy 256-bit key) |
+| 5 | `ENCRYPTION_KEY` | Any 32 random characters |
+| 6 | `NEXT_PUBLIC_SUPABASE_URL` | `https://pcfpoaqdwixxxmmbheid.supabase.co` |
+| 7 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjZnBvYXFkd2l4eHhtbWJoZWlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxODYxNjIsImV4cCI6MjA5Mjc2MjE2Mn0.o5DVcSzFHqYw6Sg35Vm3dbdLf0iXTQ7hiB9BlQrtsxE` |
+
+**How to add:**
+- Click "+ Add a key" in Vercel
+- Paste each Key and Value
+- Do this 7 times
+
+---
+
+## Step 3: Click DEPLOY! (1 Minute)
+
+Click the big **"Deploy"** button.
+
+Vercel will:
+1. `npm install` (~2 min)
+2. `prisma generate` (~30 sec)
+3. `next build` (~5 min)
+4. `prisma db push` (~30 sec) ← **Auto-creates all tables in Supabase!**
+
+**Wait for the green checkmark.**
+
+---
+
+## Step 4: Seed Demo Data (30 Seconds)
+
+After deployment is live, open this URL in your browser:
 
 ```
-NODE_ENV = production
-NEXT_PUBLIC_APP_URL = https://percomputer.vercel.app
-JWT_SECRET = your-64-character-random-string-here-generate-at-randomkeygen-com
-ENCRYPTION_KEY = your-32-character-random-string
+https://percomputer.vercel.app/api/seed
 ```
 
-### Step 5
-Click **Deploy** and wait 5-10 minutes
+If it shows `{"seeded":false}`, seed the database by running:
 
-### Step 6
-Your app is live at `https://percomputer.vercel.app`
+```bash
+curl -X POST https://percomputer.vercel.app/api/seed \
+  -H "Authorization: Bearer setup-seed-2024"
+```
 
----
+Or use a tool like Postman/Insomnia to send a POST request with header:
+- `Authorization: Bearer setup-seed-2024`
 
-## Add AI (After Deploy)
-
-### Free Option: Google Gemini
-1. Get free key: https://aistudio.google.com/app/apikey
-2. In Vercel dashboard > your project > Settings > Environment Variables
-3. Add: `GOOGLE_API_KEY = your-key-here`
-4. Auto-redeploys — AI now works!
-
-### Other Providers (Optional)
-| Provider | Get Key At | Env Variable Name |
-|----------|-----------|-------------------|
-| OpenAI | platform.openai.com/api-keys | `OPENAI_API_KEY` |
-| Anthropic Claude | console.anthropic.com/settings/keys | `ANTHROPIC_API_KEY` |
-| Groq (free tier!) | console.groq.com/keys | `GROQ_API_KEY` |
-
-Add each the same way as Google Gemini above.
+**Done!** Your database now has demo workflows, tasks, users, and artifacts.
 
 ---
 
-## What You Get
+## Step 5: Your App is LIVE! 🎉
 
-**Demo Mode (no keys):**
-- Full UI with 15 demo workflows
-- All pages working with mock data
-- Dark/light mode, all features visible
+Open your Vercel URL and explore:
+- **Home** with composer
+- **15 demo workflows** in Library
+- **Console** with operator tools
+- **Settings** with all panels
 
-**With AI Keys:**
-- Real AI workflows that run actual LLMs
-- Live streaming responses
-- Real research, code generation, analysis
+Everything persists to **Supabase PostgreSQL**!
 
 ---
 
-## Cost
+## Add Real AI (Optional — Do Anytime)
 
-| Setup | Monthly Cost |
-|-------|-------------|
-| Demo mode | **$0** |
-| With Gemini free tier | **$0** |
-| With paid LLMs | ~$10-50 depending on usage |
+After your app is live, add LLM keys for real AI responses:
+
+| Provider | Free? | Get Key At | Add As |
+|----------|-------|-----------|--------|
+| **Google Gemini** | ✅ Yes | [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) | `GOOGLE_API_KEY` |
+| **Groq** | ✅ Yes | [console.groq.com/keys](https://console.groq.com/keys) | `GROQ_API_KEY` |
+| **OpenAI** | ❌ No | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | `OPENAI_API_KEY` |
+| **Anthropic Claude** | ❌ No | [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) | `ANTHROPIC_API_KEY` |
+
+**How to add:** Vercel Dashboard → Your Project → Settings → Environment Variables → Add Key
 
 ---
 
-Done! Your Perplexity Computer clone will be live! 
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| "Database connection failed" | Double-check `DATABASE_URL` is pasted exactly |
+| "Build failed" | Check Vercel build logs; may need to trigger redeploy |
+| "No data in app" | Run the seed step (Step 4) |
+| Tables missing in Supabase | Vercel build auto-runs `prisma db push`; trigger redeploy |
+
+---
+
+## What You Now Have
+
+| Component | Status |
+|-----------|--------|
+| Next.js 15 frontend | ✅ Live on Vercel CDN |
+| Supabase PostgreSQL | ✅ Persistent database |
+| 15 demo workflows | ✅ In database |
+| Real-time streaming | ✅ Working |
+| Dark/light mode | ✅ Working |
+| All pages functional | ✅ Working |
+| **Cost** | **$0** (Vercel Hobby + Supabase Free) |
+
+---
+
+## Support
+
+- Repo: https://github.com/perlantir/Percomputer
+- Detailed guide: `VERCEL_DEPLOY_STEPS.md` in repo
+- Full deployment guide: `DEPLOYMENT_GUIDE.md` in repo
