@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "prisma generate && next build",
+  "buildCommand": "prisma generate && next build && prisma db push --accept-data-loss",
   "installCommand": "npm install",
   "framework": "nextjs",
   "regions": ["iad1"],
