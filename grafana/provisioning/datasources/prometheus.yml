@@ -1,0 +1,23 @@
+# ============================================================
+# Grafana Datasource Provisioning — Prometheus
+# Auto-configured on Grafana startup
+# ============================================================
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      httpMethod: POST
+      manageAlerts: true
+      prometheusType: Prometheus
+      cacheLevel: 'High'
+      incrementalQuerying: true
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          url: 'http://localhost:16686/trace/$${__value.raw}'

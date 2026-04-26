@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: multi-model-agent-platform
+  namespace: multi-model-agent-platform
+  labels:
+    app.kubernetes.io/name: multi-model-agent-platform
+    app.kubernetes.io/component: pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: multi-model-agent-platform

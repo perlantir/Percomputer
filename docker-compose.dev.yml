@@ -1,0 +1,217 @@
+# ============================================================
+# Docker Compose - Development Stack
+# Hot reload, volume mounts, debug logging
+# ============================================================
+
+version: "3.9"
+
+services:
+  # --------------------------------------------------
+  # Next.js Application (Dev Mode)
+  # --------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: agent-platform-app-dev
+    command: npm run dev
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: development
+      NEXT_TELEMETRY_DISABLED: "1"
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      # Database
+      DATABASE_URL: postgres://${POSTGRES_USER:-appuser}:${POSTGRES_PASSWORD:-devpass}@postgres:5432/${POSTGRES_DB:-agent_platform_dev}
+      # Redis
+      REDIS_URL: redis://redis:6379
+      # NATS
+      NATS_URL: nats://nats:4222
+      # Dev-specific
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - postgres
+      - redis
+      - nats
+    networks:
+      - agent-platform-dev
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    stdin_open: true
+    tty: true
+    # Expose metrics via build info env vars
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io.port=3000"
+      - "prometheus.io.path=/api/metrics"
+
+  # --------------------------------------------------
+  # Prometheus (Metrics Collection)
+  # --------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    container_name: agent-platform-prometheus-dev
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - agent-platform-dev
+    depends_on:
+      - app
+
+  # --------------------------------------------------
+  # Grafana (Metrics Visualization)
+  # --------------------------------------------------
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: agent-platform-grafana-dev
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: http://localhost:3001
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+    networks:
+      - agent-platform-dev
+    depends_on:
+      - prometheus
+
+  # --------------------------------------------------
+  # PostgreSQL (Dev)
+  # --------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: agent-platform-postgres-dev
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-appuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpass}
+      POSTGRES_DB: ${POSTGRES_DB:-agent_platform_dev}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - agent-platform-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-appuser} -d ${POSTGRES_DB:-agent_platform_dev}"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+
+  # --------------------------------------------------
+  # Redis (Dev)
+  # --------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: agent-platform-redis-dev
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - agent-platform-dev
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 5
+
+  # --------------------------------------------------
+  # NATS (Dev)
+  # --------------------------------------------------
+  nats:
+    image: nats:2-alpine
+    container_name: agent-platform-nats-dev
+    restart: unless-stopped
+    ports:
+      - "${NATS_PORT:-4222}:4222"
+      - "${NATS_MONITORING_PORT:-8222}:8222"
+    command: >
+      --js
+      --store_dir /data/jetstream
+      --http_port 8222
+    volumes:
+      - nats_dev_data:/data/jetstream
+    networks:
+      - agent-platform-dev
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8222/healthz"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 5
+
+  # --------------------------------------------------
+  # Mailpit (Dev Email Catcher)
+  # --------------------------------------------------
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: agent-platform-mailpit-dev
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "${MAILPIT_WEB_PORT:-8025}:8025"
+    volumes:
+      - mailpit_dev_data:/data
+    networks:
+      - agent-platform-dev
+    environment:
+      MP_DATA_FILE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: "1"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "1"
+
+# --------------------------------------------------
+# Volumes
+# --------------------------------------------------
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+  nats_dev_data:
+    driver: local
+  mailpit_dev_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+# --------------------------------------------------
+# Networks
+# --------------------------------------------------
+networks:
+  agent-platform-dev:
+    driver: bridge

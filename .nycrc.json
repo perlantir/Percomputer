@@ -1,0 +1,28 @@
+{
+  "extends": "@istanbuljs/nyc-config-typescript",
+  "all": true,
+  "check-coverage": false,
+  "reporter": ["text", "json", "html", "lcov"],
+  "report-dir": "coverage-e2e",
+  "temp-dir": ".nyc_output",
+  "include": ["src/**/*.{ts,tsx}"],
+  "exclude": [
+    "node_modules/",
+    ".next/",
+    "e2e/",
+    "tests/",
+    "**/*.d.ts",
+    "**/*.config.*",
+    "src/mock/**",
+    "src/types/**",
+    "src/data/**",
+    "src/styles/**",
+    "src/**/*.stories.{ts,tsx}",
+    "prisma/**",
+    "terraform/**",
+    "k8s/**",
+    "coverage/**",
+    "public/**"
+  ],
+  "extension": [".ts", ".tsx"]
+}

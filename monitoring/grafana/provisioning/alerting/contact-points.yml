@@ -1,0 +1,57 @@
+# ============================================================
+# Grafana Alerting - Contact Points
+# Configure notification channels for alerts
+# ============================================================
+
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: default
+    receivers:
+      - uid: default-email
+        type: email
+        settings:
+          addresses: "${ALERT_EMAIL:-admin@example.com}"
+          singleEmail: false
+        disableResolveMessage: false
+
+  - orgId: 1
+    name: slack-critical
+    receivers:
+      - uid: slack-critical
+        type: slack
+        settings:
+          url: "${SLACK_WEBHOOK_URL:-}"
+          title: "CRITICAL: {{ .CommonAnnotations.summary }}"
+          text: "{{ .CommonAnnotations.description }}"
+        disableResolveMessage: false
+
+  - orgId: 1
+    name: discord
+    receivers:
+      - uid: discord-alerts
+        type: discord
+        settings:
+          url: "${DISCORD_WEBHOOK_URL:-}"
+          title: "{{ .CommonAnnotations.summary }}"
+          message: "{{ .CommonAnnotations.description }}"
+        disableResolveMessage: false
+
+policies:
+  - orgId: 1
+    receiver: default
+    group_by: ['alertname', 'severity', 'job']
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
+    routes:
+      - receiver: slack-critical
+        matchers:
+          - severity = critical
+        group_wait: 10s
+        continue: true
+      - receiver: discord
+        matchers:
+          - severity =~ "critical|warning"
+        continue: true

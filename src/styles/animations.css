@@ -1,0 +1,414 @@
+@layer base {
+  /* ────────────────────────────────────────────────────────────────
+     Global Animation Keyframes & Utilities
+     Supports prefers-reduced-motion via media query.
+     All colors use CSS custom properties from globals.css.
+     ──────────────────────────────────────────────────────────────── */
+
+  /* ── Fade ── */
+  @keyframes fade-in {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes fade-out {
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* ── Slide ── */
+  @keyframes slide-up {
+    0%   { transform: translateY(16px); opacity: 0; }
+    100% { transform: translateY(0);   opacity: 1; }
+  }
+  @keyframes slide-down {
+    0%   { transform: translateY(-16px); opacity: 0; }
+    100% { transform: translateY(0);   opacity: 1; }
+  }
+
+  /* ── Scale ── */
+  @keyframes scale-in {
+    0%   { transform: scale(0.92); opacity: 0; }
+    100% { transform: scale(1);    opacity: 1; }
+  }
+  @keyframes scale-out {
+    0%   { transform: scale(1);    opacity: 1; }
+    100% { transform: scale(0.92); opacity: 0; }
+  }
+
+  /* ── Shimmer (loading skeleton) ── */
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* ── Pulse dot (status indicator) ── */
+  @keyframes pulse-dot {
+    0%, 100% { transform: scale(1);   opacity: 1; }
+    50%      { transform: scale(1.3); opacity: 0.5; }
+  }
+
+  /* ── Progress fill ── */
+  @keyframes progress-fill {
+    0%   { width: 0%; }
+    100% { width: var(--progress-target, 100%); }
+  }
+
+  /* ── Toast ── */
+  @keyframes toast-enter {
+    0%   { transform: translateY(-100%) scale(0.96); opacity: 0; }
+    100% { transform: translateY(0)    scale(1);    opacity: 1; }
+  }
+  @keyframes toast-exit {
+    0%   { transform: translateY(0)    scale(1);    opacity: 1; }
+    100% { transform: translateY(-100%) scale(0.96); opacity: 0; }
+  }
+
+  /* ── Modal ── */
+  @keyframes modal-enter {
+    0%   { transform: scale(0.95) translateY(8px); opacity: 0; }
+    100% { transform: scale(1)    translateY(0);  opacity: 1; }
+  }
+  @keyframes modal-exit {
+    0%   { transform: scale(1)    translateY(0);  opacity: 1; }
+    100% { transform: scale(0.95) translateY(8px); opacity: 0; }
+  }
+  @keyframes modal-backdrop-enter {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes modal-backdrop-exit {
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* ── Page transition ── */
+  @keyframes page-transition-in {
+    0%   { transform: translateY(12px); opacity: 0; filter: blur(2px); }
+    100% { transform: translateY(0);   opacity: 1; filter: blur(0); }
+  }
+  @keyframes page-transition-out {
+    0%   { transform: translateY(0);   opacity: 1; filter: blur(0); }
+    100% { transform: translateY(-8px); opacity: 0; filter: blur(2px); }
+  }
+
+  /* ── Blip / ripple (micro-interaction) ── */
+  @keyframes ripple {
+    0%   { transform: scale(0);  opacity: 0.35; }
+    100% { transform: scale(4);  opacity: 0; }
+  }
+
+  /* ── Card hover glow pulse ── */
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(var(--accent-primary-rgb), 0.10), 0 4px 8px rgba(0, 0, 0, 0.04); }
+    50%      { box-shadow: 0 0 20px rgba(var(--accent-primary-rgb), 0.18), 0 6px 12px rgba(0, 0, 0, 0.05); }
+  }
+
+  /* ── Shimmer sweep across card border ── */
+  @keyframes border-shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  /* ── Subtle float (for hover lift) ── */
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }
+  }
+
+  /* ── Bounce-in for emphasis ── */
+  @keyframes bounce-in {
+    0%   { transform: scale(0.6); opacity: 0; }
+    60%  { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1);   opacity: 1; }
+  }
+
+  /* ── Stagger entrance helpers ── */
+  @keyframes stagger-fade-up {
+    0%   { transform: translateY(12px); opacity: 0; }
+    100% { transform: translateY(0);   opacity: 1; }
+  }
+
+  /* ── Streaming cursor blink ── */
+  @keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0; }
+  }
+
+  /* ── Ring pulse (for avatar status rings) ── */
+  @keyframes ring-pulse {
+    0%   { box-shadow: 0 0 0 0 var(--ring-color, rgba(32, 184, 205, 0.4)); }
+    70%  { box-shadow: 0 0 0 6px var(--ring-color, rgba(32, 184, 205, 0)); }
+    100% { box-shadow: 0 0 0 0 var(--ring-color, rgba(32, 184, 205, 0)); }
+  }
+
+  /* ── Tooltip float ── */
+  @keyframes tooltip-float {
+    0%   { transform: translateY(4px); opacity: 0; }
+    100% { transform: translateY(0);   opacity: 1; }
+  }
+
+  /* ── Popover scale+fade entrance ── */
+  @keyframes popover-scale-in {
+    0%   { transform: scale(0.94); opacity: 0; }
+    100% { transform: scale(1);    opacity: 1; }
+  }
+  @keyframes popover-scale-out {
+    0%   { transform: scale(1);    opacity: 1; }
+    100% { transform: scale(0.96); opacity: 0; }
+  }
+
+  /* ── Popover slide entrance (direction-aware) ── */
+  @keyframes popover-slide-up {
+    0%   { transform: translateY(12px) scale(0.96); opacity: 0; }
+    100% { transform: translateY(0)    scale(1);    opacity: 1; }
+  }
+  @keyframes popover-slide-down {
+    0%   { transform: translateY(-12px) scale(0.96); opacity: 0; }
+    100% { transform: translateY(0)     scale(1);    opacity: 1; }
+  }
+  @keyframes popover-slide-left {
+    0%   { transform: translateX(12px) scale(0.96); opacity: 0; }
+    100% { transform: translateX(0)    scale(1);    opacity: 1; }
+  }
+  @keyframes popover-slide-right {
+    0%   { transform: translateX(-12px) scale(0.96); opacity: 0; }
+    100% { transform: translateX(0)     scale(1);    opacity: 1; }
+  }
+
+  /* ── Popover fade entrance ── */
+  @keyframes popover-fade-in {
+    0%   { opacity: 0; filter: blur(2px); }
+    100% { opacity: 1; filter: blur(0); }
+  }
+  @keyframes popover-fade-out {
+    0%   { opacity: 1; filter: blur(0); }
+    100% { opacity: 0; filter: blur(1px); }
+  }
+
+  /* ── Dropdown menu items stagger ── */
+  @keyframes dropdown-item-in {
+    0%   { transform: translateX(-6px); opacity: 0; }
+    100% { transform: translateX(0);    opacity: 1; }
+  }
+
+  /* ── Tutorial target pulse (highlighted element ring) ── */
+  @keyframes tutorial-target-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(32, 184, 205, 0.45), inset 0 0 0 1px rgba(32, 184, 205, 0.15); }
+    50%      { box-shadow: 0 0 0 8px rgba(32, 184, 205, 0),   inset 0 0 0 1px rgba(32, 184, 205, 0.25); }
+  }
+
+  /* ── Tutorial spotlight entrance ── */
+  @keyframes tutorial-spotlight-enter {
+    0%   { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  /* ── Button ready pulse (composer CTA) ── */
+  @keyframes button-ready-pulse {
+    0%   { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05), 0 0 0 0 rgba(32, 184, 205, 0.35); }
+    70%  { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05), 0 0 0 6px rgba(32, 184, 205, 0); }
+    100% { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05), 0 0 0 0 rgba(32, 184, 205, 0); }
+  }
+}
+
+@layer utilities {
+  /* Animation utilities — mapped to the keyframes above */
+  .anim-fade-in       { animation: fade-in 250ms ease-out-quart forwards; }
+  .anim-fade-out      { animation: fade-out 200ms ease-in-quart forwards; }
+  .anim-slide-up      { animation: slide-up 350ms ease-out-expo forwards; }
+  .anim-slide-down    { animation: slide-down 350ms ease-out-expo forwards; }
+  .anim-scale-in      { animation: scale-in 300ms ease-out-expo forwards; }
+  .anim-scale-out     { animation: scale-out 200ms ease-in-quart forwards; }
+
+  /* Popover animation utilities */
+  .anim-popover-scale-in     { animation: popover-scale-in  250ms ease-out-expo forwards; }
+  .anim-popover-scale-out    { animation: popover-scale-out 180ms ease-in-quart forwards; }
+  .anim-popover-slide-up     { animation: popover-slide-up  300ms ease-out-expo forwards; }
+  .anim-popover-slide-down   { animation: popover-slide-down 300ms ease-out-expo forwards; }
+  .anim-popover-slide-left   { animation: popover-slide-left 300ms ease-out-expo forwards; }
+  .anim-popover-slide-right  { animation: popover-slide-right 300ms ease-out-expo forwards; }
+  .anim-popover-fade-in      { animation: popover-fade-in 200ms ease-out-quart forwards; }
+  .anim-popover-fade-out     { animation: popover-fade-out 150ms ease-in-quart forwards; }
+  .anim-dropdown-item-in     { animation: dropdown-item-in 200ms ease-out-expo forwards; }
+
+  .anim-shimmer       { animation: shimmer 2s linear infinite; }
+  .anim-pulse-dot     { animation: pulse-dot 1.4s ease-in-out infinite; }
+  .anim-progress-fill { animation: progress-fill var(--progress-duration, 600ms) ease-out-quart forwards; }
+  .anim-toast-enter   { animation: toast-enter 350ms ease-out-expo forwards; }
+  .anim-toast-exit    { animation: toast-exit 250ms ease-in-quart forwards; }
+  .anim-modal-enter   { animation: modal-enter 300ms ease-out-expo forwards; }
+  .anim-modal-exit    { animation: modal-exit 200ms ease-in-quart forwards; }
+  .anim-modal-backdrop-enter { animation: modal-backdrop-enter 200ms ease-out-quart forwards; }
+  .anim-modal-backdrop-exit  { animation: modal-backdrop-exit 150ms ease-in-quart forwards; }
+  .anim-page-in       { animation: page-transition-in 400ms ease-out-expo forwards; }
+  .anim-page-out      { animation: page-transition-out 300ms ease-in-quart forwards; }
+  .anim-bounce-in     { animation: bounce-in 450ms ease-out-expo forwards; }
+  .anim-cursor-blink  { animation: cursor-blink 1s step-end infinite; }
+  .anim-ring-pulse    { animation: ring-pulse 2s ease-out infinite; }
+  .anim-tooltip-float { animation: tooltip-float 200ms ease-out-quart forwards; }
+  .anim-button-ready-pulse { animation: button-ready-pulse 2.5s ease-out infinite; }
+  .anim-tutorial-target-pulse { animation: tutorial-target-pulse 2s ease-in-out infinite; }
+  .anim-tutorial-spotlight-enter { animation: tutorial-spotlight-enter 300ms ease-out-quart forwards; }
+  .tutorial-target-pulse { animation: tutorial-target-pulse 2s ease-in-out infinite; }
+  .anim-ripple        { animation: ripple 600ms ease-out-quart forwards; }
+
+  /* Shimmer background setup */
+  .bg-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--bg-surface-3) 25%,
+      var(--bg-surface-2) 50%,
+      var(--bg-surface-3) 75%
+    );
+    background-size: 200% 100%;
+  }
+
+  /* Card glow animation utility */
+  .anim-glow-pulse {
+    animation: glow-pulse 2.5s ease-in-out infinite;
+  }
+
+  /* Border shimmer — apply to pseudo-elements */
+  .anim-border-shimmer {
+    animation: border-shimmer 3s linear infinite;
+  }
+
+  /* Subtle float animation */
+  .anim-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Hover glow utilities */
+  .hover-glow {
+    transition: box-shadow var(--duration-fast) var(--ease-out-expo),
+                border-color var(--duration-fast) var(--ease-out-expo),
+                transform var(--duration-fast) var(--ease-out-expo);
+  }
+  .hover-glow:hover {
+    box-shadow: var(--shadow-glow);
+    border-color: rgba(var(--accent-primary-rgb), 0.2);
+  }
+
+  /* Enhanced hover glow — larger, more prominent */
+  .hover-glow-lg {
+    transition: box-shadow var(--duration-normal) var(--ease-out-expo),
+                border-color var(--duration-normal) var(--ease-out-expo),
+                transform var(--duration-normal) var(--ease-spring);
+  }
+  .hover-glow-lg:hover {
+    box-shadow: var(--shadow-glow-lg);
+    border-color: rgba(var(--accent-primary-rgb), 0.25);
+    transform: translateY(-2px);
+  }
+
+  /* Subtle lift on hover */
+  .hover-lift {
+    transition: transform var(--duration-fast) var(--ease-spring),
+                box-shadow var(--duration-fast) var(--ease-out-expo);
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Stagger delay utilities */
+  .stagger-1  { animation-delay: 50ms;  }
+  .stagger-2  { animation-delay: 100ms; }
+  .stagger-3  { animation-delay: 150ms; }
+  .stagger-4  { animation-delay: 200ms; }
+  .stagger-5  { animation-delay: 250ms; }
+  .stagger-6  { animation-delay: 300ms; }
+  .stagger-7  { animation-delay: 350ms; }
+  .stagger-8  { animation-delay: 400ms; }
+  .stagger-9  { animation-delay: 450ms; }
+  .stagger-10 { animation-delay: 500ms; }
+
+  /* Dropdown item stagger delays */
+  .dropdown-stagger-1  { animation-delay: 20ms;  }
+  .dropdown-stagger-2  { animation-delay: 40ms;  }
+  .dropdown-stagger-3  { animation-delay: 60ms;  }
+  .dropdown-stagger-4  { animation-delay: 80ms;  }
+  .dropdown-stagger-5  { animation-delay: 100ms; }
+  .dropdown-stagger-6  { animation-delay: 120ms; }
+  .dropdown-stagger-7  { animation-delay: 140ms; }
+  .dropdown-stagger-8  { animation-delay: 160ms; }
+
+  /* Reduced motion overrides */
+  @media (prefers-reduced-motion: reduce) {
+    .anim-fade-in,
+    .anim-fade-out,
+    .anim-slide-up,
+    .anim-slide-down,
+    .anim-scale-in,
+    .anim-scale-out,
+    .anim-shimmer,
+    .anim-pulse-dot,
+    .anim-progress-fill,
+    .anim-toast-enter,
+    .anim-toast-exit,
+    .anim-modal-enter,
+    .anim-modal-exit,
+    .anim-modal-backdrop-enter,
+    .anim-modal-backdrop-exit,
+    .anim-page-in,
+    .anim-page-out,
+    .anim-bounce-in,
+    .anim-cursor-blink,
+    .anim-ring-pulse,
+    .anim-tooltip-float,
+    .anim-ripple,
+    .anim-button-ready-pulse,
+    .anim-tutorial-target-pulse,
+    .anim-tutorial-spotlight-enter,
+    .anim-glow-pulse,
+    .anim-border-shimmer,
+    .anim-float,
+    .anim-popover-scale-in,
+    .anim-popover-scale-out,
+    .anim-popover-slide-up,
+    .anim-popover-slide-down,
+    .anim-popover-slide-left,
+    .anim-popover-slide-right,
+    .anim-popover-fade-in,
+    .anim-popover-fade-out,
+    .anim-dropdown-item-in,
+    .tutorial-target-pulse {
+      animation: none !important;
+      transition: none !important;
+    }
+
+    .anim-fade-in,
+    .anim-slide-up,
+    .anim-slide-down,
+    .anim-scale-in,
+    .anim-toast-enter,
+    .anim-modal-enter,
+    .anim-page-in,
+    .anim-bounce-in,
+    .anim-tooltip-float,
+    .anim-popover-scale-in,
+    .anim-popover-slide-up,
+    .anim-popover-slide-down,
+    .anim-popover-slide-left,
+    .anim-popover-slide-right,
+    .anim-popover-fade-in,
+    .anim-dropdown-item-in,
+    .hover-glow,
+    .hover-glow-lg,
+    .hover-lift {
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+      transition: none !important;
+    }
+
+    .anim-fade-out,
+    .anim-scale-out,
+    .anim-toast-exit,
+    .anim-modal-exit,
+    .anim-page-out,
+    .anim-popover-scale-out,
+    .anim-popover-fade-out {
+      opacity: 0 !important;
+    }
+  }
+}

@@ -1,0 +1,12 @@
+#!/bin/sh
+# Commit-msg hook: enforce conventional commit format
+# Validates commit message follows Conventional Commits specification
+
+set -e
+
+echo "📝 Validating commit message format..."
+
+# Use commitlint to validate the commit message
+npx --no -- commitlint --edit "$1"
+
+echo "✅ Commit message format is valid!"

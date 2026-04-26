@@ -1,0 +1,18 @@
+#!/bin/sh
+# Pre-push hook: run tests
+# Runs before every push
+
+set -e
+
+echo "🧪 Running pre-push tests..."
+
+# Run tests (if test script exists)
+echo "  → Running test suite..."
+if npm run test --if-present; then
+  echo "✅ All tests passed!"
+else
+  echo "❌ Tests failed. Push aborted."
+  exit 1
+fi
+
+echo "✅ Pre-push checks passed!"

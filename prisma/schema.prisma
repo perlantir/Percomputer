@@ -1,0 +1,437 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum WorkflowStatus {
+  draft
+  queued
+  planning
+  running
+  paused
+  succeeded
+  failed
+  cancelling
+  cancelled
+}
+
+enum TaskStatus {
+  pending
+  ready
+  running
+  succeeded
+  failed
+  cancelled
+  skipped
+}
+
+enum EdgeType {
+  data
+  ordering
+  conditional
+}
+
+enum AttemptStatus {
+  running
+  succeeded
+  failed
+  cancelled
+}
+
+enum ArtifactKind {
+  report_md
+  dataset_csv
+  image_png
+  image_jpg
+  code_diff
+  text_txt
+  json
+}
+
+enum ClarificationStatus {
+  pending
+  answered
+  expired
+}
+
+enum MemoryKind {
+  working
+  episodic
+  semantic
+}
+
+enum SafetyClass {
+  default
+  sensitive
+  high_stakes
+}
+
+enum UserRole {
+  owner
+  admin
+  member
+  viewer
+  auditor
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// User & Organisation
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  avatarUrl String?
+  orgId     String
+  role      UserRole @default(member)
+  mfaEnabled Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  workflows Workflow[]
+  spaces    Space[]
+
+  @@index([orgId])
+}
+
+model Org {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  plan         String   @default("free")
+  featureFlags Json     @default("[]")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Space (Workspace)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Space {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  orgId       String
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User       @relation(fields: [createdById], references: [id])
+  workflows Workflow[]
+
+  @@index([orgId])
+  @@index([createdById])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Workflow
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Workflow {
+  id                   String         @id @default(cuid())
+  prompt               String         @db.Text
+  status               WorkflowStatus @default(draft)
+  spaceId              String
+  createdById          String
+  activePlanRevisionId String?
+  safetyClass          SafetyClass    @default(default)
+  statusReason         String?
+  startedAt            DateTime?
+  finishedAt           DateTime?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  user           User            @relation(fields: [createdById], references: [id])
+  space          Space           @relation(fields: [spaceId], references: [id])
+  tasks          Task[]
+  taskEdges      TaskEdge[]
+  artifacts      Artifact[]
+  memories       Memory[]
+  events         Event[]
+  usages         Usage[]
+  planRevisions  PlanRevision[]
+  clarifications Clarification[]
+
+  @@index([createdById])
+  @@index([spaceId])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Task
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Task {
+  id              String     @id @default(cuid())
+  title           String
+  instruction     String     @db.Text
+  kind            String
+  status          TaskStatus @default(pending)
+  workflowId      String
+  dagLevel        Int        @default(0)
+  modelAttempts   Json       @default("[]")
+  resolvedModelId String?
+  maxAttempts     Int        @default(3)
+  statusReason    String?
+  inputTokens     Int        @default(0)
+  outputTokens    Int        @default(0)
+  creditsUsed     Decimal?   @db.Decimal(10, 4)
+  durationMs      Int        @default(0)
+  dependencies    Json       @default("[]")
+  toolCalls       Json       @default("[]")
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  workflow      Workflow      @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  attempts      TaskAttempt[]
+  outgoingEdges TaskEdge[]    @relation("TaskOutgoingEdges")
+  incomingEdges TaskEdge[]    @relation("TaskIncomingEdges")
+
+  @@index([workflowId])
+  @@index([status])
+  @@index([kind])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TaskEdge
+// ─────────────────────────────────────────────────────────────────────────────
+
+model TaskEdge {
+  id          String   @id @default(cuid())
+  fromTaskId  String
+  toTaskId    String
+  workflowId  String
+  edgeType    EdgeType @default(ordering)
+  dataMapping String?
+  condition   Json?
+  createdAt   DateTime @default(now())
+
+  fromTask Task     @relation("TaskOutgoingEdges", fields: [fromTaskId], references: [id], onDelete: Cascade)
+  toTask   Task     @relation("TaskIncomingEdges", fields: [toTaskId], references: [id], onDelete: Cascade)
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@index([fromTaskId])
+  @@index([toTaskId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TaskAttempt
+// ─────────────────────────────────────────────────────────────────────────────
+
+model TaskAttempt {
+  id            String        @id @default(cuid())
+  taskId        String
+  attemptNumber Int
+  modelId       String
+  status        AttemptStatus @default(running)
+  output        String?       @db.Text
+  toolCalls     Json          @default("[]")
+  errorMessage  String?
+  errorCode     String?
+  tokenUsage    Json?
+  startedAt     DateTime      @default(now())
+  finishedAt    DateTime?
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Artifact
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Artifact {
+  id         String   @id @default(cuid())
+  workflowId String
+  taskId     String?
+  name       String
+  kind       ArtifactKind
+  storageUrl String
+  sizeBytes  Int      @default(0)
+  checksum   String?
+  metadata   Json?
+  mimeType   String   @default("text/plain")
+  createdAt  DateTime @default(now())
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@index([kind])
+  @@index([taskId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PlanRevision
+// ─────────────────────────────────────────────────────────────────────────────
+
+model PlanRevision {
+  id               String   @id @default(cuid())
+  workflowId       String
+  version          Int
+  reason           String   @default("")
+  addedTasks       Int      @default(0)
+  removedTasks     Int      @default(0)
+  dagJson          Json
+  plannedByModelId String
+  createdAt        DateTime @default(now())
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Clarification
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Clarification {
+  id               String                @id @default(cuid())
+  workflowId       String
+  taskId           String?
+  question         String                @db.Text
+  status           ClarificationStatus   @default(pending)
+  answer           String?               @db.Text
+  expiresInMinutes Int                   @default(60)
+  createdAt        DateTime              @default(now())
+  answeredAt       DateTime?
+  expiredAt        DateTime?
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@index([taskId])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Memory
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Memory {
+  id          String     @id @default(cuid())
+  kind        MemoryKind @default(working)
+  orgId       String?
+  spaceId     String?
+  workflowId  String?
+  content     String?    @db.Text
+  subject     String?
+  predicate   String?
+  object      String?
+  embedding   Json?
+  confidence  Decimal?   @db.Decimal(5, 4)
+  context     Json?
+  key         String?
+  value       String?    @db.Text
+  scope       String     @default("session")
+  expiresAt   DateTime?
+  createdAt   DateTime   @default(now())
+
+  workflow Workflow? @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@index([kind])
+  @@index([key])
+  @@index([orgId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AuditEvent
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AuditEvent {
+  id           String   @id @default(cuid())
+  orgId        String
+  actorId      String
+  category     String
+  action       String
+  resourceType String
+  resourceId   String
+  description  String   @db.Text
+  metadata     Json     @default("{}")
+  ipHash       String?
+  occurredAt   DateTime @default(now())
+
+  @@index([orgId])
+  @@index([actorId])
+  @@index([resourceType])
+  @@index([occurredAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Connector (External Integrations)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Connector {
+  id           String    @id @default(cuid())
+  name         String
+  type         String
+  orgId        String
+  spaceId      String?
+  config       Json      @default("{}")
+  healthStatus String    @default("unknown")
+  lastTestedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([orgId])
+  @@index([spaceId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Event
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Event {
+  id         String   @id @default(cuid())
+  workflowId String
+  type       String
+  payload    Json
+  createdAt  DateTime @default(now())
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@index([createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Usage & Billing
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Usage {
+  id                 String   @id @default(cuid())
+  workflowId         String?
+  orgId              String
+  taskId             String?
+  modelId            String
+  promptTokens       Int      @default(0)
+  completionTokens   Int      @default(0)
+  costUsd            Decimal  @default(0) @db.Decimal(10, 6)
+  estimatedCostCents Int      @default(0)
+  latencyMs          Int      @default(0)
+  timestamp          DateTime @default(now())
+
+  workflow Workflow? @relation(fields: [workflowId], references: [id], onDelete: SetNull)
+
+  @@index([workflowId])
+  @@index([timestamp])
+  @@index([orgId])
+}

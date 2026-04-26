@@ -1,0 +1,55 @@
+# ============================================================
+# Prometheus Configuration
+# Scrapes metrics from the Next.js app /api/metrics endpoint
+# ============================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+  # Attach labels to all metrics for identification
+  external_labels:
+    cluster: 'agent-platform'
+    replica: '{{.ExternalURL}}'
+
+# Scrape the Next.js application
+scrape_configs:
+  # --------------------------------------------------
+  # Next.js Application Metrics
+  # --------------------------------------------------
+  - job_name: 'agent-platform-app'
+    metrics_path: '/api/metrics'
+    scheme: http
+    static_configs:
+      - targets: ['app:3000']
+        labels:
+          service: 'nextjs'
+    # If METRICS_API_TOKEN is set, add bearer token auth header
+    # Uncomment and configure if using token-protected metrics:
+    # authorization:
+    #   type: Bearer
+    #   credentials: '${METRICS_API_TOKEN}'
+
+  # --------------------------------------------------
+  # Prometheus Self-Monitoring
+  # --------------------------------------------------
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # --------------------------------------------------
+  # Node.js Runtime (if using prom-client default metrics)
+  # Included in /api/metrics endpoint above
+  # --------------------------------------------------
+
+# --------------------------------------------------
+# Alerting Rules (placeholder)
+# --------------------------------------------------
+# rule_files:
+#   - /etc/prometheus/alerts.yml
+
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
