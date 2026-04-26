@@ -37,7 +37,7 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset",
-    "prepare": "husky"
+    "prepare": "husky || echo 'Skipping husky'"} }
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
