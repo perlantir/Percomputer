@@ -6,7 +6,7 @@
 # --------------------------------------------------
 # Stage 1: Dependencies
 # --------------------------------------------------
-FROM node:20-alpine AS deps
+FROM node:25-alpine AS deps
 WORKDIR /app
 
 # Install build dependencies for native modules
@@ -30,7 +30,7 @@ RUN \
 # --------------------------------------------------
 # Stage 2: Builder
 # --------------------------------------------------
-FROM node:20-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 
 # Copy dependencies from deps stage
@@ -61,7 +61,7 @@ RUN npm run build
 # --------------------------------------------------
 # Stage 3: Runner (Production)
 # --------------------------------------------------
-FROM node:20-alpine AS runner
+FROM node:25-alpine AS runner
 WORKDIR /app
 
 # Install runtime dependencies
